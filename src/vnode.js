@@ -79,15 +79,6 @@ export class VNode {
 	attrEntries() {
 		return this.cx.attrEntries(this.inode);
 	}
-	attr(k, v) {
-		if (arguments.length == 1) return this.cx.getAttribute(this.inode, k);
-		if (arguments.length === 0) {
-			this.inode = this.cx.clearAttributes(this.inode);
-		} else {
-			this.inode = this.cx.setAttribute(this.inode, k, v);
-		}
-		return this;
-	}
 	modify(node, ref) {
 		this.inode = this.cx.modify(this.inode, node, ref, this.type);
 		return this;
@@ -95,9 +86,6 @@ export class VNode {
 	// hitch this on VNode for reuse
 	vnode(inode, parent, depth, indexInParent) {
 		return this.cx.vnode(inode, parent, depth, indexInParent);
-	}
-	value(type, value) {
-		return this.cx.value(type, value);
 	}
 	emptyINode(type, name, attrs, ns) {
 		return this.cx.emptyINode(type, name, attrs, ns);
