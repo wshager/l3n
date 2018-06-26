@@ -7,14 +7,12 @@
     "test": "test"
   },
   "dependencies": {
-    "fastintcompression": "^0.0.1",
-    "xvnode": "0.0.6"
+    "rxjs": "^6.2.1"
   },
-  "devDependencies": {
-    "babel-preset-es2015": "^6.14.0",
-    "xvtree": "^0.1.0"
+  "devDependencies": {},
+  "scripts": {
+    "build": "babel src --out-dir lib"
   },
-  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wshager/l3n.git"
