@@ -69,15 +69,6 @@ function _elemToString(e) {
 
 // -----------------------
 
-export function value(type, value) {
-	if (type == 7) {
-		return { $pi: value };
-	} else if (type == 8) {
-		return { $comment: value };
-	}
-	return value;
-}
-
 export function vnode(inode, parent, depth, indexInParent, type) {
 	type = type || getType(inode);
 	let name,
@@ -214,9 +205,15 @@ export function push(inode, kv, type, has_call) {
 export function set(inode,key,val,type) {
 	// used to restore immutable parents, never modifies mutable
 	type = type || getType(inode);
-	if(type == 6) {
+	if(type == 1 || type == 6) {
 		inode[key] = val;
 		return inode;
+	} else if (type == 2) {
+		inode.$value = val;
+	} else if (type == 7) {
+		return { $pi: val };
+	} else if (type == 8) {
+		return { $comment: val };
 	}
 	return inode;
 }
@@ -294,15 +291,6 @@ export function finalize(inode) {
 	return inode;
 }
 
-export function setAttribute(inode, key, val) {
-	if (inode.$attrs) inode.$attrs[key] = val;
-	return inode;
-}
-
-export function getAttribute(inode, key) {
-	if (inode.$attrs) return inode.$attrs[key];
-}
-
 export function count(inode, type) {
 	type = type || getType(inode);
 	if (type == 1 || type == 9 || type == 11) {
@@ -378,7 +366,7 @@ export function modify(inode, node, ref, type) {
 			inode.$args.push(node.inode);
 		}
 	} else if (type == 2) {
-		inode.$value = node.inode;
+		// unfortunately refers back to self...
 	} else if (type == 5) {
 		if (ref !== undefined) {
 			inode.splice(ref.indexInParent, 0, node.inode);
