@@ -7,7 +7,7 @@ L3 trees can express HTML, XML, JSON or functional programs.
 
 ## The Concept
 
-Many documents can be iterated as a flat sequence of nodes, be it an XML or HTML document, a piece of JSON (see http://rapidjson.org/md_doc_sax.html) or even a functional program (e.g. XQuery, LISP or RQL). The way documents are traversed is in *document order*, just like a SAX parser: an event is emitted for when a tag opens or closes, or when a text node is completed.
+Many documents can be iterated as a flat sequence of nodes, be it an XML or HTML document, a piece of JSON or even a functional program (see [Raddle](https://npmjs.com/raddle)). The way documents are traversed is in *document order*, just like a SAX parser: an event is emitted for when a tag opens or closes, or when a text node is completed.
 
 This library stores all nodes as plain JSON by using a simple convention (as provided by the `inode` interface). Iteration is wrapped as Observable stream, which uses RxJS 6. This convention ensures that there's no diffence in interfacing with an in-memory tree and a parser: everything is a stream. L3 also provides an immutable alternative to plain JSON (as provided by the `persist` interface).
 
