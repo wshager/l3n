@@ -4,8 +4,6 @@ import { VNode } from "./vnode";
 import * as cx from "./dom";
 
 // helpers ---------------
-import {} from "./shim";
-
 const filter = (...a) => l => Array.prototype.filter.apply(l,a);
 
 const wsre = /^[\t\n\r ]*$/;
@@ -197,7 +195,7 @@ export function first(inode,type){
 }
 
 export function last(inode,type){
-	if(type == 1 || type == 9 || type == 11) return filterWS(inode.childNodes).last();
+	if(type == 1 || type == 9 || type == 11) return filterWS(inode.childNodes).lastItem;
 }
 
 export function attrEntries(inode){

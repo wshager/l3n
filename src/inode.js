@@ -6,7 +6,6 @@ import multimap from "./multimap";
 import * as cx from "./inode";
 
 // helpers ---------------
-import {} from "./shim";
 
 //import { q } from "./qname";
 
@@ -239,7 +238,7 @@ export function cached(inode, type) {
 	if (type == 1 || type == 9 || type == 11) {
 		let children = inode.$children,
 			len = children.length,
-			cache = multimap.default();
+			cache = multimap();
 		for (var i = 0; i < len; i++) {
 			cache.push([children[i].$name || i + 1, children[i]]);
 		}
@@ -345,12 +344,12 @@ export function first(inode, type) {
 
 export function last(inode, type) {
 	type = type || getType(inode);
-	if (type == 1 || type == 9 || type == 11) return inode.$children.last();
-	if (type == 14 || type == 15) return inode.$args.last();
-	if (type == 5) return inode.last();
+	if (type == 1 || type == 9 || type == 11) return inode.$children.lastItem;
+	if (type == 14 || type == 15) return inode.$args.lastItem;
+	if (type == 5) return inode.lastItem;
 	if (type == 6) {
 		var entries = Object.entries(inode);
-		var kv = entries.last();
+		var kv = entries.lastItem;
 		// pass tuple-wise
 		return { $key: kv[0], $value: kv[1] };
 	}
@@ -406,7 +405,7 @@ export function toJS(inode,type) {
 	}
 }
 
-export function stringify(inode, type, prettyXML = x => x) {
+export function stringify(inode, type, prettifier = x => x) {
 	var json = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 	var root = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
 
@@ -445,5 +444,5 @@ export function stringify(inode, type, prettyXML = x => x) {
 			str += type == 12 || json ? "<l3:x>" + _val2 + "</l3:x>" : _val2;
 		}
 	}
-	return root ? prettyXML(str) : str;
+	return root ? prettifier(str) : str;
 }

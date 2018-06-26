@@ -60,7 +60,7 @@ class VNodeBuffer {
 	}
 }
 
-export function fromStream($s,bufSize = 1) {
+export function toVNodeStream($s,bufSize = 1) {
 	let _inode = inode.emptyINode(11);
 	let d = new VNode(inode, _inode, 11);
 	const cx = this && this.hasOwnProperty("vnode") ? this : inode;

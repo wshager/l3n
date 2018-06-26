@@ -13,8 +13,8 @@ export class VNode {
 		this.cache = cache;
 		this.__is_VNode = true;
 	}
-	toString () {
-		return this.cx.stringify(this.inode,this.type);
+	toString(prettifier = x => x) {
+		return this.cx.stringify(this.inode,this.type,prettifier);
 	}
 	toJS() {
 		return this.cx.toJS(this.inode,this.type);
