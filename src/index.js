@@ -1,3 +1,7 @@
+/**
+ * @module index
+ */
+
 import {} from "array-last-item";
 
 import traverse from "./traverse";
@@ -10,10 +14,11 @@ import * as pnode from "./pnode";
 
 import * as dom from "./dom";
 
-
 export { e, a, x, l, m, p, c, f, q } from "./construct";
 
-export { toVNodeStream, isLeaf, isBranch, isClose } from "./l3n";
+export { VNode, isVNode, getContext } from "./vnode";
+
+export { toVNodeStream, isLeaf, isBranch } from "./l3n";
 
 export { ensureDoc, d, t, doctype } from "./doc";
 
