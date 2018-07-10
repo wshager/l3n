@@ -355,6 +355,8 @@ function _elemToString(e) {
 	return str;
 }
 
+// FIXME XML or HTML?
+// TODO ref type
 export function stringify(node, type, prettifier) {
 	var str = "";
 	type = type || getType(node);
