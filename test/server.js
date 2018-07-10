@@ -8,7 +8,7 @@ http.createServer(function (request, response) {
 
 	var filePath = "." + request.url;
 	if (filePath == "./") {
-		filePath = "./index.html";
+		filePath = "./test/index.html";
 	} else if((filePath.includes("dist") || filePath.includes("_esm2015") || filePath.includes("rrb-vector")) && !filePath.endsWith("index.js")) {
 		filePath += ".js";
 	}
