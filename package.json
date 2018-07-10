@@ -1,6 +1,6 @@
 {
   "name": "l3n",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Lagua low-level notation",
   "main": "./lib/l3n.js",
   "directories": {
