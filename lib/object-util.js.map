@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/object-util.js"],"names":["set","o","k","v"],"mappings":";;;;;AAAO,MAAMA,oBAAM,CAACC,CAAD,EAAGC,CAAH,EAAKC,CAAL,MAAYF,EAAEC,CAAF,IAAOC,CAAP,EAASF,CAArB,CAAZ","file":"object-util.js","sourcesContent":["export const set = (o,k,v) => (o[k] = v,o);\r\n"]}
