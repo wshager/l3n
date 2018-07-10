@@ -74,7 +74,7 @@ export function t(...children) {
  * @param  {String} name          The qualified name
  * @param  {String} publicId=""   The PUBLIC identifier
  * @param  {String} systemId=""   The SYSTEM identifier
- * @return {[type]}               A faux VNode
+ * @return {VNode}               A faux VNode
  */
 export function doctype(name,publicId="",systemId=""){
 	return _v(10,[name,publicId,systemId]);
