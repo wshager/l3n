@@ -57,9 +57,9 @@ console.log(div.toJS());
 ```
 
 
-## API (WIP)
+## API documentation (WIP)
 
-[index](./docs/index.md)
+Documentation index: [index](./docs/index.md)
 
 
 ## Examples (ES modules)
@@ -94,7 +94,7 @@ yields
 while
 
 ```javascript
-ensureDoc(div).subscribe(vnode => {
+ensureDoc(map).subscribe(vnode => {
     console.log(vnode.toString());
 });
 ```

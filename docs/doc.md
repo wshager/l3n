@@ -1,7 +1,7 @@
 <a name="module_doc"></a>
 
 ## doc
-Document-related
+Document-related functions
 
 
 * [doc](#module_doc)

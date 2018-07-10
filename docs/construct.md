@@ -1,7 +1,7 @@
 <a name="module_construct"></a>
 
 ## construct
-VNode constructors are *lazy*: the temporary VNode holds a reference to a function instead of a concrete structure. The actual tree will be created when its parent VNode calls this function. There are several ways to achieve this:* By ensuring that the tree has a document root (see `ensureDoc`)* By wrapping the tree in a document constructor or document-fragment constructor (see `d` or `t`)* By traversing the tree (see `traverse`)At this point the construction *context* can be also bound (JSON, DOM or persistent). After that, all functions will be called recursively to create the actual document with the chosen context.
+VNode constructors are *lazy*: the temporary VNode holds a reference to a function instead of a concrete structure. The actual tree will be created when its parent VNode calls this function. There are several ways to achieve this:* By ensuring that the tree has a document root (see `ensureDoc`)* By wrapping the tree in a document constructor or document-fragment constructor (see `d` or `t` in [doc](./doc.md))* By traversing the tree (see [traverse](./traverse.md))At this point a 'document implementation context' can be also bound (JSON, DOM or persistent). After that, all functions will be called recursively to create the actual document with the chosen context (see [inode](./inode.md), [pnode](./pnode.md), [dom](./dom.md)).Alternatively a structure can be created by calling the faux VNode's `node` method with a context directly.
 
 
 * [construct](#module_construct)
