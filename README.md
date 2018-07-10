@@ -158,6 +158,7 @@ L3N serialization rules for JSON:
 | 7 | Processing instruction | `{"$pi"":"xml-stylesheet "\"type\"=\"text/xsl\" \"href\"=\"some.xsl\""}` |
 | 8 | Comment | `{"$comment":"some-comment"}`|
 | 12 | teXt | `123`, `true` or `null` |
+| 10 | doctype | `{"$doctype":"serialized-doctype"}` |
 | 14 | Function call | `{"$name":"some-function","$args":[]}` |
 | 15 | Quotation (AKA lambda) | `{"$args":[]}`
 ____
@@ -173,6 +174,7 @@ L3N serialization rules for XML:
 | 6 | Map | `<l3:m xmlns:l3="http://l3n.org"><l3:a name="my-xml-tuple"><some-element /></l3:a></l3:m>` |
 | 7 | Processing instruction | `<?xml-stylesheet type="text/xsl" href="some.xsl" ?>` |
 | 8 | Comment | `<!-- some-comment -->`|
+| 10 | doctype | <!DOCTYPE ...> |
 | 12 | teXt | `<l3:x xmlns:l3="http://l3n.org">123</l3:x>` |
 | 14 | Function call | `<l3:f xmlns:l3="http://l3n.org" name="some-function"></l3:f>` |
 | 15 | Quotation | `<l3:q xmlns:l3="http://l3n.org"></l3:q>`
@@ -190,6 +192,7 @@ L3N serialization rules for HTML:
 | 6 | Map | `<l3-m><l3-a name="key">value</l3-a></l3-m>` |
 | 7 | Processing instruction | N/A |
 | 8 | Comment | `<!-- some-comment -->`|
+| 10 | doctype | <!DOCTYPE ...> |
 | 12 | teXt | `<l3-x>123</l3-x>` |
 | 14 | Function call | `<l3-f name="some-function"></l3-f>` |
 | 15 | Quotation | `<l3-q></l3-q>`
