@@ -26,21 +26,34 @@ Note: you should not create references to VNode instances, or they can't be garb
 
 The easiest way to get started is with the Node.js distribution:
 
-```
+```javascript
 const l3 = require("l3n");
 
-// direct construction of a document-fragment, no Rx:
+// Direct construction of a document-fragment, no Rx:
 
 const frag = l3.t(
   l3.e("div",
-    a("class","greeting"),
-    e("p","Hello")
+    l3.a("class","greeting"),
+    l3.e("p","Hello")
   )
 )
 
 console.log(frag.toString());
 
 console.log(frag.toJS());
+```
+
+```javascript
+// Alternatively, you can pass a 'document implementation context' to the faux VNode directly.
+// Below example will create a persistent tree
+const div = l3.e("div",
+  l3.a("class","greeting"),
+  l3.e("p","Hello")
+).node(l3.pnode);
+
+console.log(div.toString());
+
+console.log(div.toJS());
 ```
 
 
