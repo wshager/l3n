@@ -2,32 +2,7 @@ import { Observable } from "rxjs";
 
 import * as inode from "./inode";
 
-import { VNode, Step, Direct } from "./vnode";
-
-/*
-const constructormap = {
-	1: "e",
-	2: "a",
-	3: "x",
-	4: "r",
-	5: "l",
-	6: "m",
-	7: "p",
-	8: "c",
-	12: "x",
-	14: "f",
-	15: "q"
-};
-*/
-
-class Nil {
-	valueOf() {
-		return null;
-	}
-	toString() {
-		return "null";
-	}
-}
+import { VNode, Close, getContext } from "./vnode";
 
 export const isLeaf = function isLeaf(type) {
 	return type == 2 || type == 3 || type == 4 || type == 7 || type == 8 || type == 10 || type == 12 || type == 16;
@@ -37,8 +12,6 @@ export const isBranch = function isBranch(type) {
 };
 
 export const isClose = type => type == 17;
-
-export const isDirect = type => type == 18;
 
 class VNodeBuffer {
 	constructor(nodes = []) {
@@ -61,14 +34,14 @@ class VNodeBuffer {
 }
 
 export function toVNodeStream($s,bufSize = 1) {
-	let _inode = inode.emptyINode(11);
-	let d = new VNode(inode, _inode, 11);
-	const cx = this && this.hasOwnProperty("vnode") ? this : inode;
+	const cx = getContext(this,inode);
+	// create fragment node here; doc constructor expects children
+	let d = cx.vnode(cx.create(11,"#document-fragment"), 11);
 	let ndepth = 0,
 		stack = [],
 		open = [11],
 		parents = [d],
-		openTuples = {},
+		openPairs = {},
 		buffered = null,
 		buf = new VNodeBuffer();
 	const checkStack = () => {
@@ -85,18 +58,16 @@ export function toVNodeStream($s,bufSize = 1) {
 			buf.add(buffered);
 			buffered = null;
 		}
-		if (isDirect(type)) {
-			stack = [];
-			return buf.add(new Direct(parent));
-		} else if (isClose(type)) {
+		if (isClose(type)) {
 			open.pop();
 			parents.pop();
-			//console.log("closing",ndepth,parent.inode);
+			//console.log("closing",ndepth,parent.node);
 			--ndepth;
 			stack = [];
-			return buf.add(new Step(parent));
+			parent.finalize();
+			return buf.add(new Close(parent));
 		} else {
-			var _inode = void 0,
+			let node = void 0,
 				name = void 0,
 				key = void 0,
 				_isBranch = isBranch(type);
@@ -106,86 +77,84 @@ export function toVNodeStream($s,bufSize = 1) {
 				case 1:
 				{
 					name = stack[1];
-					_inode = { $type: type, $name: name, $children: [] };
+					node = cx.create(1,name);
 					if (last == 6) {
 						// emit inode /w key
-						key = openTuples[ndepth];
-						//console.log("picked up tuple",ndepth,key);
-						openTuples[ndepth] = undefined;
+						key = openPairs[ndepth];
+						//console.log("picked up pair",ndepth,key);
+						openPairs[ndepth] = undefined;
 					}
-					if (parent) parent.push([key, _inode]);
+					if (parent) parent.push([key, node]);
 					open.push(type);
 					// TODO use cx.vnode()
-					var _depth = parent ? parent.depth + 1 : 1;
-					var _node = new VNode(cx, _inode, _inode.$type, name, key, isLeaf(type) ? _inode.valueOf() : null, parent, _depth, parent ? parent.count() : 0, parent ? parent.callCount() : 0);
+					let depth = parent ? parent.depth + 1 : 1;
+					let vnode = new VNode(cx, node, type, name, key, isLeaf(type) ? node.valueOf() : null, parent, depth, parent ? parent.count() : 0);
+					//let vnode = cx.vnode(node,parent,depth,parent ? parent.count() : 0,type);
 					// buffer attributes
-					buffered = _node;
+					buffered = vnode;
 					//console.log("opening element",ndepth,name, buffered);
-					parents.push(_node);
+					parents.push(vnode);
 					stack = [];
 					return;
 				}
 				case 9:
-					name = "#document";
-					_inode = { $name: name, $children: [] };
+					node = cx.create(9,"#document");
 					break;
 				case 11:
-					name = "#document-fragment";
-					_inode = { $name: name, $children: [] };
+					node = cx.create(11,"#document-fragment");
 					break;
 				case 14:
-					name = stack[1];
-					_inode = { $name: name, $args: [], $call_args:[] };
+					node = cx.create(14,stack[1]);
 					break;
 				case 15:
-					_inode = { $name: name, $args: [], $call_args:[] };
+					node = cx.create(15);
 					break;
 				case 5:
-					_inode = []; //{$type:type,$children:[]};
+					node = cx.create(5);
 					break;
 				case 6:
-					// never emit until all tuples are closed
-					_inode = {};
+					// never emit until all pairs are closed
+					node = cx.create(6);
 					break;
 				}
 				if (last == 6) {
-					// must be an open tuple
-					key = openTuples[ndepth - 1];
-					openTuples[ndepth - 1] = undefined;
-					//console.log("picked up tuple",ndepth,key);
+					// must be an open pair
+					key = openPairs[ndepth - 1];
+					openPairs[ndepth - 1] = undefined;
+					//console.log("picked up pair",ndepth,key);
 				}
 				if (parent) {
-					parent.push([key, _inode]);
+					parent.push([key, node]);
 				}
 				open.push(type);
 			} else {
 				if (type == 2) {
 					// new model:
-					// - create tuple inode
-					// - don't emit tuple, but tuple value /w key
-					openTuples[ndepth] = stack[1];
-					//console.log("opening tuple",ndepth,stack[1]);
+					// - create pair inode
+					// - don't emit pair, but pair value /w key
+					openPairs[ndepth] = stack[1];
+					//console.log("opening pair",ndepth,stack[1]);
 					stack = [];
 					return;
 				} else {
-					var value = stack[1];
+					let value = stack[1];
 					if (type == 12) value = JSON.parse(value);
-					_inode = value === null ? new Nil() : new value.constructor(value);
-					if (openTuples[ndepth] !== undefined) {
-						key = openTuples[ndepth];
-						//console.log("picked up tuple",ndepth,key);
-						// NOTE Don't put away your tuple Harry, they might come back...
-						//openTuples[ndepth] = undefined;
+					node = cx.create(type,value);
+					if (openPairs[ndepth] !== undefined) {
+						key = openPairs[ndepth];
+						//console.log("picked up pair",ndepth,key);
+						// NOTE unset pair! No seqs allowed in l3!
+						openPairs[ndepth] = undefined;
 						if (last == 6) {
 							if (parent) {
 								if(parent.has(key)) {
-									parent.set(key,parent.get(key) + " "+ _inode);
+									parent.set(key,parent.get(key) + " "+ node);
 								} else {
-									parent.push([key, _inode]);
+									parent.push([key, node]);
 								}
 							}
 						} else if (last == 1) {
-							parent.attr(key, value);
+							parent.set(key, value);
 							stack = [];
 							return;
 						} else {
@@ -193,19 +162,20 @@ export function toVNodeStream($s,bufSize = 1) {
 						}
 					} else {
 						if (parent) {
-							parent.push([null, _inode]);
+							parent.push([null, node]);
 						}
 					}
 				}
 			}
 			stack = [];
-			var depth = parent ? parent.depth + 1 : type == 9 || type == 11 ? 0 : 1;
-			var node = new VNode(cx, _inode, type, name, key, isLeaf(type) ? _inode.valueOf() : null, parent, depth, parent ? parent.count() : 0, parent ? parent.callCount() : 0);
+			let depth = parent ? parent.depth + 1 : type == 9 || type == 11 ? 0 : 1;
+			let vnode = new VNode(cx, node, type, name, key, isLeaf(type) ? node.valueOf() : null, parent, depth, parent ? parent.count() : 0);
+			//let vnode = cx.vnode(node,parent,depth,parent ? parent.count() : 0,type);
 			if (_isBranch) {
-				parents.push(node);
+				parents.push(vnode);
 			}
 			//console.log("buf",node.name);
-			buf.add(node);
+			buf.add(vnode);
 		}
 	};
 	return Observable.create($o => {
