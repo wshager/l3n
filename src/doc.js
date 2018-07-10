@@ -1,5 +1,5 @@
 /**
- * Document-related
+ * Document-related functions
  * @module doc
  */
 
