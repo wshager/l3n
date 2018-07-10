@@ -15,8 +15,8 @@ import * as inode from "./inode";
 
 /**
  * Wraps a document into a document-fragment if it doesn't have a document root
- * @param  {any} $node Observable, VNode or any kind of node mathing the provided document implementation context
- * @return {[type]}       [description]
+ * @param  {any} $node  Observable, VNode or any kind of node mathing the provided document implementation context
+ * @return {Observable} Observable yielding a single VNode
  */
 export function ensureDoc($node) {
 	// FIXME if isVNode(node) use cx on node
