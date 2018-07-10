@@ -9,7 +9,7 @@ L3 trees can express HTML, XML, JSON or functional programs.
 
 Many documents can be iterated as a flat sequence of nodes, be it an XML or HTML document, a piece of JSON or even a functional program (see [Raddle](https://npmjs.com/raddle)). The way documents are traversed is in *document order*, just like a SAX parser: an event is emitted for when a branch opens or closes, or when a (text) leaf is completed.
 
-This library stores all familiar document nodes as plain JSON by using a simple convention. Traversal of documents is exposes as an Observable stream (uses RxJS 6). This ensures that there's no difference between traversing an in-memory tree or connecting to a SAX-style parser: everything is a stream.
+This library stores all familiar document nodes as plain JSON by using a simple convention. Traversal of documents is exposed as an Observable stream (uses RxJS 6). This ensures that there's no difference between traversing an in-memory tree or connecting to a SAX-style parser: everything is a stream.
 
 Each node that is emitted on the stream is wrapped in a transient container that provides a reference to the parent node (see the `VNode` class). In addition, the `VNode` interface exposes more relevant properties, such as its depth relative to the root or its position relative to its parent. These enable traversal across all DOM axes. Furthermore, node names and values may be indexed to increase performance.
 
