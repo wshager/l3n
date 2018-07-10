@@ -7,121 +7,197 @@ L3 trees can express HTML, XML, JSON or functional programs.
 
 ## The Concept
 
-Many documents can be iterated as a flat sequence of nodes, be it an XML or HTML document, a piece of JSON or even a functional program (see [Raddle](https://npmjs.com/raddle)). The way documents are traversed is in *document order*, just like a SAX parser: an event is emitted for when a tag opens or closes, or when a text node is completed.
+Many documents can be iterated as a flat sequence of nodes, be it an XML or HTML document, a piece of JSON or even a functional program (see [Raddle](https://npmjs.com/raddle)). The way documents are traversed is in *document order*, just like a SAX parser: an event is emitted for when a branch opens or closes, or when a (text) leaf is completed.
 
-This library stores all nodes as plain JSON by using a simple convention (as provided by the `inode` interface). Iteration is wrapped as Observable stream, which uses RxJS 6. This convention ensures that there's no diffence in interfacing with an in-memory tree and a parser: everything is a stream. L3 also provides an immutable alternative to plain JSON (as provided by the `persist` interface).
+This library stores all familiar document nodes as plain JSON by using a simple convention. Traversal of documents is exposes as an Observable stream (uses RxJS 6). This ensures that there's no difference between traversing an in-memory tree or connecting to a SAX-style parser: everything is a stream.
 
-In the XML / HTML world you often need to interface with the DOM. That's why, instead of just emitting every node as-is, each INode is wrapped in a transient container object that provides a reference to the parent node (the `VNode` interface). This way the same interface can be used for DOM as well. In addition, the VNode wrapper provides the depth and index of the node in the document, as well as the index of the node in the parent. Some work remains to be done on caching node names and indexing node values for providing fast access across across all DOM axes. From an API perspective this means you shouldn't create references to wrapper nodes, or they can't be garbage collected. Instead, you should to transform them functionally, by using RxJS or our specialized library Frink.
+Each node that is emitted on the stream is wrapped in a transient container that provides a reference to the parent node (see the `VNode` class). In addition, the `VNode` interface exposes more relevant properties, such as its depth relative to the root or its position relative to its parent. These enable traversal across all DOM axes. Furthermore, node names and values may be indexed to increase performance.
 
-In the browser, the VNode interface is placed before native DOM by a small wrapper around the TreeWalker API (uses ES6 WeakMap).
+This library provides an immutable alternative to plain JSON (via the `pnode` context) and a native DOM context for the browser. The traversal context may be switched by simply binding each accessor function to another context module.
+
+For native DOM traversal in the browser, the `VNode` integrates with the canonical TreeWalker API (uses ES6 WeakMap).
+
+Note: you should not create references to VNode instances, or they can't be garbage collected. Transform them functionally instead, by using RxJS or a specialized library (see [Frink](https://npmjs.com/frink)).
 
 
 ## API (WIP)
 
+<a name="VNode"></a>
+
+## VNode : [<code>VNode</code>](#VNode)
+core interface to communicate with nodes
+
+**Kind**: global class  
+
+* [VNode](#VNode) : [<code>VNode</code>](#VNode)
+    * [new exports.VNode(cx, node, type, name, key, value, parent, depth, indexInParent, cache)](#new_VNode_new)
+    * [.toString([prettifier])](#VNode+toString) ⇒ <code>String</code>
+
+<a name="new_VNode_new"></a>
+
+### new exports.VNode(cx, node, type, name, key, value, parent, depth, indexInParent, cache)
+Create VNode
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| cx | <code>Object</code> | [description] |
+| node | <code>Object</code> | [description] |
+| type | <code>Number</code> | [description] |
+| name | <code>String</code> | [description] |
+| key | <code>String</code> | [description] |
+| value | <code>any</code> | [description] |
+| parent | [<code>VNode</code>](#VNode) | [description] |
+| depth | <code>Number</code> | [description] |
+| indexInParent | <code>Number</code> | [description] |
+| cache | <code>Object</code> | [description] |
+
+<a name="VNode+toString"></a>
+
+### vNode.toString([prettifier]) ⇒ <code>String</code>
+Render XML representation of a VNode
+
+**Kind**: instance method of [<code>VNode</code>](#VNode)  
+**Returns**: <code>String</code> - Output  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [prettifier] | <code>function</code> | <code>x &#x3D;&gt; x</code> | Optional prettifier function |
+
+
+
 ### Constructors
 
-The shorthand for L3 constructor functions is inspired by HyperScript, which is in turn inspired by put-selector, which was inspired by JSON-query, which was inspired by XPath, which is based on XML DOM. Besides, I didn't want names like `createElement`, but you can alias these functions in your code.
+VNode constructors are *lazy*: the temporary VNode holds a reference to a function instead of a concrete structure. The actual tree will be created when its parent VNode calls this function. There are several ways to achieve this:
 
-#### class VNode
+* By ensuring that the tree has a document root (see `ensureDoc`)
+* By wrapping the tree in a document constructor or document-fragment constructor (see `d` or `t`)
+* By traversing the tree (see `traverse`)
 
-#### e(name, children) ⇒ <code>VNode</code>
+At this point the construction *context* can be also bound (JSON, DOM or persistent). After that, all functions will be called recursively to create the actual document with the chosen context.
+
+#### e(name, ...children) ⇒ <code>VNode</code>
 Creates an element node, which can contain multiple nodes of any type, except `document`.
 
 | Param  | Type                | Description  |
 | ------ | ------------------- | ------------ |
-| name  | <code>string, QName</code> | The name of the element |
-| children | <code>aray<VNode>|ArraySeq<VNode>|Observable<VNode></code> | The children of the element |
+| name  | <code>String|QName</code> | The name of the element |
+| children | <code>VNode*</code> | The children of the element |
 
 #### a(name,value) ⇒ <code>VNode</code>
-Creates an attribute node under an element, or a tuple under a map. Can contain a single node of any other type, except `document` and `attribute`. Note that when serializing to XML, attribute values are converted to a string following serializer parameters.
+Creates an attribute node under an element, or a tuple under a map. Can contain a single node of any other type, except `attribute`. Note that when serializing to XML, attribute values are converted to a string following serializer parameters.
 
 When the parent is not an element or map, an error will be produced.
 
 | Param  | Type                | Description  |
 | ------ | ------------------- | ------------ |
-| name  | <code>string</code> | The name of the attribute or tuple |
-| value | <code>string, VNode</code> | The value of the attribute |
+| name  | <code>String</code> | The name of the attribute or tuple |
+| value | <code>String|VNode</code> | The value of the attribute |
 
 #### x(value) ⇒ <code>VNode</code>
 Creates a primitive value node, which can contain a javascript primitive (string, number, boolean or null).
 
 | Param  | Type                | Description  |
 | ------ | ------------------- | ------------ |
-| value | <code>string, number, boolean, null</code> | The value of the node |
+| value | <code>String|Number|Boolean</code> | The value of the node |
 
 #### r(value) ⇒ <code>VNode</code>
 Creates a "reference" (or link) node, which can contain a (partial) URI-formatted string.
 
 | Param  | Type                | Description  |
 | ------ | ------------------- | ------------ |
-| value | <code>string</code> | The value of the node |
+| value | <code>String</code> | The value of the node |
 
-#### l(children) ⇒ <code>VNode</code>
+#### l(...children) ⇒ <code>VNode</code>
 Creates a list (AKA array) node, which can contain multiple nodes of any type, except `document` and `attribute`.
 
 | Param  | Type                | Description  |
 | ------ | ------------------- | ------------ |
-| children | <code>VNode*</code> | The children of the list (array, ArraySeq or Observable) |
+| children | <code>VNode*</code> | The children of the list |
 
-#### m(children) ⇒ <code>VNode</code>
+#### m(...children) ⇒ <code>VNode</code>
 Creates a map (AKA plain object) node, which can contain multiple nodes of type `attribute`.
 
 | Param  | Type                | Description  |
 | ------ | ------------------- | ------------ |
-| children | <code>VNode*</code> | The children of the map (array, ArraySeq or Observable) |
-
-#### d(children) ⇒ <code>VNode</code>
-Creates a document node, which can contain a single node of any other type, except `document` and `attribute`, in addition to multiple processing instruction nodes. In general, documents aren't constructed directly, but created by the parser.
-
-This is a top level node, and may not be contained in other nodes.
-
-| Param  | Type                | Description  |
-| ------ | ------------------- | ------------ |
-| children | <code>VNode*</code> | The children of the document (array, ArraySeq or Observable) |
+| children | <code>VNode*</code> | The children of the map |
 
 #### p(target,content) ⇒ <code>VNode</code>
 Creates a processing instruction node.
 
 | Param  | Type                | Description  |
 | ------ | ------------------- | ------------ |
-| target  | <code>string</code> |  The target part of the PI |
-| content | <code>string</code> | The content part of the PI |
-
+| target  | <code>String</code> | The target part of the PI |
+| content | <code>String</code> | The content part of the PI |
 
 #### c(value) ⇒ <code>VNode</code>
 Creates a comment node, which can contain a string.
 
 | Param  | Type                | Description  |
 | ------ | ------------------- | ------------ |
-| value | <code>string</code> | The value of the node |
+| value | <code>String</code> | The value of the node |
 
+#### d(...children) ⇒ <code>VNode*</code>
+Creates a document node, which can contain a nodes of any other type.
 
-#### f(qname,arguments) ⇒ <code>VNode</code>
-Creates a "function call" node, which can contain nodes of any other type, except `attribute`.
-
-| Param  | Type                | Description  |
-| ------ | ------------------- | ------------ |
-| qname | <code>string, QName</code> | The name of the function |
-| arguments | <code>Array</code> | The arguments to the function as an array |
-
-
-#### q(body) ⇒ <code>VNode</code>
-Creates a "quotation" (AKA lambda) node, which can contain nodes of any other type, except `attribute`.
+This is a top level node, and may not be contained in other nodes.
 
 | Param  | Type                | Description  |
 | ------ | ------------------- | ------------ |
-| body | <code>Array</code> | The arguments to the function as an array |
+| children | <code>VNode*</code> | The children of the document |
 
-___
+#### t(...children) ⇒ <code>VNode*</code>
+Creates a document-fragment node, which can contain nodes of any other type.
 
-Notes:
+This is a top level node, and may not be contained in other nodes.
 
-* Constructors are *lazy*: the temporary VNode holds a reference to a function. The node will be actualized when its parent VNode calls this function.
-* Once a root node is actualized, all constructor function references will be called recursively to create the actual document structure.
-* A document may also be actualized on demand, for example when accessing or modifying a temporary structure.
-* Documents can be persistent or non-persistent JSON under the hood. This can be decided when a document is actualized. The VNode interface can also be used to wrap HTML DOM nodes.
+| Param  | Type                | Description  |
+| ------ | ------------------- | ------------ |
+| children | <code>VNode*</code> | The children of the document-fragment |
 
-____
+#### f(qname,args) ⇒ <code>VNode</code>
+Creates a "function call" node, which can contain nodes of any other type.
+
+| Param  | Type                | Description  |
+| ------ | ------------------- | ------------ |
+| qname | <code>String, QName</code> | The name of the function |
+| args | <code>VNode*</code> | The arguments to the function |
+
+#### q(args) ⇒ <code>VNode</code>
+Creates a "quotation" (AKA lambda) node, which can contain nodes of any other type.
+
+| Param  | Type                | Description  |
+| ------ | ------------------- | ------------ |
+| args | <code>VNode*</code> | The body of the function |
+
+#### ensureDoc(node) => <code>VNode*</code>
+Makes sure a tree is always wrapped in a document or document-fragment.
+
+| Param  | Type                | Description  |
+| ------ | ------------------- | ------------ |
+| node | <code>any</code> | The node to wrap (plain JSON is converted to VNode) |
+
+
+### Traversal
+
+#### traverse(doc) => <code>VNode*</code>
+Traverses a document as a stream, in depth-first order, emitting a special `Close` node after every traversed branch.
+
+| Param  | Type                | Description  |
+| ------ | ------------------- | ------------ |
+| doc | <code>VNode*</code> | The VNode to traverse |
+
+
+### Stream conversion
+
+#### toVNodeStream(stream,bufSize) => <code>VNode*</code>
+Converts an L3 stream into a VNode stream. This function expects a sequence of L3 constants as integers, and names or values as strings (parsers are expected to emit this kind of stream).
+
+| Param  | Type                | Description  |
+| ------ | ------------------- | ------------ |
+| stream | <code>Observable<String|Number></code> | The L3 stream as an Observable |
+
+
 
 ## Examples
 
