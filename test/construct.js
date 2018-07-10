@@ -1,3 +1,3 @@
 const l3 = require("../lib/index");
-
-l3.vdoc(l3.m(l3.a("test","bla"))).subscribe(x => console.log(x+""));
+const pnode = require("../lib/pnode");
+l3.t.bind(pnode)(l3.m(l3.a("bla","x"))).subscribe(x => console.log("x",x+""));
