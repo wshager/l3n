@@ -1,20 +1,18 @@
-import { isObservable, of } from "rxjs";
+import { concatMap } from "rxjs/operators";
 
-import { concatMap, reduce } from "rxjs/operators";
+import { getContext } from "./vnode";
 
-import { isVNode } from "./vnode";
+import { _n, _v } from "./construct-impl-strict";
 
-import { x } from "./construct";
+import just from "./just";
 
 import * as inode from "./inode";
 
-const just = $o => isObservable($o) ? $o : of($o);
-
 export function ensureDoc($node) {
 	// FIXME if isVNode(node) use cx on node
-	var cx = this && this.vnode ? this : inode;
+	var cx = getContext(this,inode);
 	return just($node).pipe(concatMap(function (node) {
-		if (!node.inode) {
+		if (!node.node) {
 			var type = cx.getType(node);
 			if (type == 9 || type == 11) {
 				var root = cx.first(node);
@@ -23,16 +21,16 @@ export function ensureDoc($node) {
 				// create a document-fragment by default!
 				var doc = t.bind(cx)();
 				var _root = cx.vnode(node, doc, 1, 0);
-				return doc.pipe(concatMap(function (doc) {
-					doc = doc.push([0, _root.inode]);
+				return just(doc).pipe(concatMap(function (doc) {
+					doc = doc.push([0, _root.node]);
 					var next = doc.first();
 					return next ? just(doc.vnode(next, doc, doc.depth + 1, 0)) : just();
 				}));
 			}
 		}
-		if (typeof node.inode === "function") {
+		if (typeof node.node === "function") {
 			// NOTE never bind to current node.cx, but purposely allow cross-binding
-			return d.bind(cx)(node).pipe(concatMap(function (node) {
+			return just(t.bind(cx)(node)).pipe(concatMap(function (node) {
 				var next = node.first();
 				return next ? just(node.vnode(next, node, node.depth + 1, 0)) : just();
 			}));
@@ -41,22 +39,14 @@ export function ensureDoc($node) {
 	}));
 }
 
-function _d(type, children) {
-	const cx = this.vnode ? this : inode;
-	const node = cx.vnode(cx.emptyINode(type, "#document"), null, 0);
-	return just(children).pipe(
-		concatMap(c => isObservable(c) ? c : isVNode(c) ? just(c) : x(c)),
-		concatMap(child => child.inode(node)),
-		reduce((node, child) => node.modify(child), node)
-	);
+export function d(...children) {
+	return _n(9, "#document", children).node(getContext(this,inode));
 }
 
-export function d(children) {
-	var cx = this && this.vnode ? this : inode;
-	return _d.bind(cx)(9, children);
+export function t(...children) {
+	return _n(11, "#document-fragment",children).node(getContext(this,inode));
 }
 
-export function t(children) {
-	var cx = this && this.vnode ? this : inode;
-	return _d.bind(cx)(11, children);
+export function doctype(name,publicId="",systemId=""){
+	return _v(10,[name,publicId,systemId]);
 }
