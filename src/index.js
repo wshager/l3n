@@ -1,7 +1,22 @@
 import {} from "array-last-item";
 
-export { e,a,x,l,m } from "./construct";
+import traverse from "./traverse";
 
-export { toVNodeStream, isLeaf, isBranch, isClose, isDirect } from "./l3n";
+import traverseDOM from "./traverse-dom";
 
-export { vdoc } from "./access";
+import * as inode from "./inode";
+
+import * as pnode from "./pnode";
+
+import * as dom from "./dom";
+
+
+export { e, a, x, l, m, p, c, f, q } from "./construct";
+
+export { toVNodeStream, isLeaf, isBranch, isClose } from "./l3n";
+
+export { ensureDoc, d, t, doctype } from "./doc";
+
+export { qname } from "./qname";
+
+export { traverse, traverseDOM, inode, pnode, dom };
