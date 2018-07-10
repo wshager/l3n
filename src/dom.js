@@ -1,6 +1,6 @@
 import { VNode } from "./vnode";
 
-import { isBranch } from "./l3n";
+import { isBranch } from "./convert";
 
 import { serialize } from "./doctype";
 

@@ -1,3 +1,8 @@
+/**
+ * Document-related
+ * @module doc
+ */
+
 import { concatMap } from "rxjs/operators";
 
 import { getContext, isVNode } from "./vnode";

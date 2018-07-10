@@ -1,9 +1,20 @@
+/**
+ * Traversal
+ * @module traverse
+ */
+
 import { Observable } from "rxjs";
 
 import { Close } from "./vnode";
 
 import { ensureDoc } from "./doc";
 
+/**
+ * Traverses a document in depth-first (AKA "document") order
+ * In addition to every node in the document, a special `Close` node is emitted after every traversed branch.
+ * @param  {any} $node  (faux) VNode, Observable or any node constructed within the bound context
+ * @return {Observable} An Observable stream emitting VNodes
+ */
 export function traverse($node) {
 	var cx = this;
 	$node = ensureDoc.bind(cx)($node);
@@ -25,8 +36,7 @@ export function traverse($node) {
 
 export default traverse;
 
-// FIXME nextNode is never eligable for seqs, so it shouldn't be exposed
-// TODO write nextNode function: create observable for current node, subscribe and call nextNode
+// NOTE nextNode is never eligable for seqs, but it may be exposed for other purposes
 function nextNode(vnode /* VNode */) {
 	let type = vnode.type,
 		node = vnode.node,

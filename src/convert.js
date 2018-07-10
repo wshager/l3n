@@ -1,16 +1,37 @@
+/**
+ * Stream conversion
+ * @module convert
+ */
+
 import { Observable } from "rxjs";
 
 import * as inode from "./inode";
 
 import { VNode, Close, getContext } from "./vnode";
 
+/**
+ * Check if type is of leaf class
+ * @param  {Number}  type the type constant to test
+ * @return {Boolean}      result
+ */
 export const isLeaf = function isLeaf(type) {
 	return type == 2 || type == 3 || type == 4 || type == 7 || type == 8 || type == 10 || type == 12 || type == 16;
 };
+
+/**
+ * Check if type is of branch class
+ * @param  {Number}  type the type constant to test
+ * @return {Boolean}      result
+ */
 export const isBranch = function isBranch(type) {
 	return type == 1 || type == 5 || type == 6 || type == 9 || type == 11 || type == 14 || type == 15;
 };
 
+/**
+ * Check if type is of close class
+ * @param  {Number}  type the type constant to test
+ * @return {Boolean}      result
+ */
 export const isClose = type => type == 17;
 
 class VNodeBuffer {
@@ -33,6 +54,13 @@ class VNodeBuffer {
 	}
 }
 
+/**
+ * Convert an L3 stream directly to a VNode stream, constructing the document while traversing
+ * An L3 stream is a sequence of L3 constants as integers, and names or values as strings (parsers are expected to emit this kind of stream).
+ * @param  {Observable} $s       The L3 stream as an Observable
+ * @param  {Number} [bufSize=1]  Optional buffer size. Use NaN or Infinity to buffer everything
+ * @return {Observable}          The VNode stream as an Observable
+ */
 export function toVNodeStream($s,bufSize = 1) {
 	const cx = getContext(this,inode);
 	// create fragment node here; doc constructor expects children

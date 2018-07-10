@@ -4,7 +4,7 @@ import multimap from "./multimap";
 
 import { serialize } from "./doctype";
 
-import { isBranch } from "./l3n";
+import { isBranch } from "./convert";
 
 // import self!
 import * as cx from "./inode";

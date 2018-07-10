@@ -18,7 +18,7 @@ export { e, a, x, l, m, p, c, f, q } from "./construct";
 
 export { VNode, isVNode, getContext } from "./vnode";
 
-export { toVNodeStream, isLeaf, isBranch } from "./l3n";
+export { toVNodeStream, isLeaf, isBranch } from "./convert";
 
 export { ensureDoc, d, t, doctype } from "./doc";
 

@@ -1,3 +1,8 @@
+/**
+ * DOM Traversal
+ * @module traverse-dom
+ */
+
 import { Observable } from "rxjs";
 
 import { VNode, Close } from "./vnode";
@@ -6,6 +11,11 @@ import { ensureDoc } from "./doc";
 
 import * as cx from "./dom";
 
+/**
+ * Traverses a document in depth-first (AKA "document") order
+ * @param  {any} $node  VNode, Observable or any node constructed within the DOM context
+ * @return {Observable} An Observable stream emitting VNodes
+ */
 export function traverseDOM($node,d = document){
 	$node = ensureDoc.bind(cx)($node);
 	return Observable.create($o => {
