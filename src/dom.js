@@ -1,76 +1,90 @@
 import { VNode } from "./vnode";
 
+import { isBranch } from "./l3n";
+
+import { serialize } from "./doctype";
+
+import { range, filter, map } from "./array-util";
+
 // import self!
 import * as cx from "./dom";
 
 // helpers ---------------
-const filter = (...a) => l => Array.prototype.filter.apply(l,a);
-
 const wsre = /^[\t\n\r ]*$/;
 const ignoreWS = x => x.nodeType != 3 || !wsre.test(x.textContent);
 const filterWS = filter(ignoreWS);
 
-const l3re = /^l3-(e?)(a?)(x?)(r?)(l?)(m?)(p?)(c?)()()(d?)()()(f?)$/;
+const l3re = /^l3-(e?)(a?)(x?)(r?)(l?)(m?)(p?)(c?)()()(d?)()()(f?)(q?)$/;
 const getL3Type = name => {
-	return parseInt(name.replace(l3re, function () {
-		for (var i = 1; i < arguments.length; i++) {
-			if (arguments[i]) return i;
-		}
-	})) | 0;
+	const matches = l3re.exec(name.toLowerCase());
+	if(!matches) return 0;
+	for (let i = 1, l = matches.length; i < l; i++) {
+		if (matches[i]) return i;
+	}
+	return 0;
 };
 
-var getQName = function getQName(inode, indexInParent) {
-	var nodeType = inode.nodeType;
-	var nodeName = inode.nodeName;
+const constructors = {
+	1: "e",
+	2: "a",
+	3: "x",
+	4: "r",
+	5: "l",
+	6: "m",
+	7: "p",
+	8: "c",
+	12: "x",
+	14: "f",
+	15: "q"
+};
+
+var getQName = function getQName(node, indexInParent) {
+	var nodeType = node.nodeType;
+	var nodeName = node.nodeName;
 	if (nodeType == 1) {
 		var l3Type = getL3Type(nodeName);
 		//let type = l3Type | nodeType;
 		var isL3 = l3Type !== 0;
-		var attrs = inode.attributes;
+		var attrs = node.attributes;
 		return isL3 ? attrs.name : nodeName;
 	} else {
 		return indexInParent + 1;
 	}
 };
 
-
-//import { q } from "./qname";
+//import { qname } from "./qname";
 
 // -----------------------
 // Core API
 // -----------------------
+export const __vnode_context = "dom";
 
-
-export function value(type, value){
-	return value;
-}
-
-export function vnode(inode, parent, depth, indexInParent) {
-	var nodeType = inode.nodeType;
-	var nodeName = inode.nodeName;
+export function vnode(node, parent, depth, indexInParent) {
+	var nodeType = node.nodeType;
+	var nodeName = node.nodeName;
 	let isElem = nodeType == 1;
 	var l3Type = isElem ? getL3Type(nodeName) : 0;
-	let type = l3Type | nodeType;
+	let type = l3Type || nodeType;
 	var isL3 = isElem && l3Type !== 0;
-	var attrs = isElem ? inode.attributes : null;
+	var attrs = isElem ? node.attributes : null;
 	var name, key, value;
-	if(type == 1){
+	if(type == 1 || type == 14){
 		// if l3, nodeType != type
 		name = isL3 ? attrs.name : nodeName;
 	} else if(type == 2) {
 		// no-op?
-		key = inode.name;
+		key = node.name;
 	} else if (type == 5) {
 		// no-op?
 	} else if (type == 6) {
 		// no-op?
 	} else if(type == 3 || type == 8 || type == 12){
-		value = isL3 ? inode.textContent : inode.data;
+		value = isL3 ? node.textContent : node.data;
 	}
 	// return vnode
 	return new VNode(
 		cx,
-		inode,
+		node,
 		type,
 		name,
 		key,
@@ -81,128 +95,157 @@ export function vnode(inode, parent, depth, indexInParent) {
 	);
 }
 
-export function emptyINode(type, name, attrs) {
+// TODO relative document?
+export function create(type, nameOrValue) {
 	if(type == 9) {
-		// XMLDocument doesn't make sense, right?
-		return document.createDocumentFragment();
+		return document.implementation.createDocument(null,null);
+	} else if(type == 10) {
+		return document.implementation.createDocumentType(...nameOrValue);
 	} else if(type == 11) {
 		return document.createDocumentFragment();
-	} else {
-		// TODO l3, persistent attrs?
+	} else if(isBranch(type)){
+		const name = type == 1 ? nameOrValue : "l3-" + constructors[type];
 		var elem = document.createElement(name);
-		for(var k in attrs){
-			elem.attributes[k] = attrs[k];
-		}
+		if(type == 14) elem.name = nameOrValue;
+		return elem;
+	} else if(type == 2) {
+		return document.createAttribute(nameOrValue);
+	} else if(type == 3) {
+		return document.createTextNode(nameOrValue);
+	} else if(type == 4) {
+		// provisional link type ;)
+		const node = document.createElement("link");
+		node.setAttribute("rel","import");
+		node.setAttribute("href",nameOrValue);
+		return node;
+	} else if(type == 7) {
+		return document.createProcessingInstruction(...nameOrValue);
+	} else if(type == 8) {
+		return document.createComment(nameOrValue);
 	}
 }
 
-export function emptyAttrMap(init){
-	return init || {};
+
+export function get(node,idx,type){
+	type = type || getType(node);
+	if(isBranch(type)){
+		return filterWS(node.childNodes)[idx];
+	}
+	return node[idx];
 }
 
-/*
-export function get(inode,idx,type){
-	type = type || _inferType(inode);
-	if(type == 1 || type == 9){
-		return _get(inode.$children,idx);
-	}
-	return inode[idx];
+export function has(node,idx,type){
+	return !!get(node,idx,type);
 }
-*/
-export function next(pinode, node, type){
-	//var idx = node.indexInParent;
-	let inode = node.inode;
-	if(type == 1 || type == 9 || type == 11) {
+
+export function next(node, vnode, type){
+	type = type || getType(node);
+	if(isBranch(type)) {
 		// ignore WS-only!
-		var nxt = inode.nextSibling;
+		var nxt = vnode.nextSibling;
 		while(nxt && !ignoreWS(nxt)){
-			nxt = inode.nextSibling;
+			nxt = vnode.nextSibling;
 		}
 		return nxt || undefined;
 	}
 }
 
-export function push(inode,kv,type){
-	if(type == 1 || type == 9  || type == 11){
-		inode.appendChild(kv[1]);
+export function previous(node, vnode, type){
+	type = type || getType(node);
+	if(isBranch(type)) {
+		// ignore WS-only!
+		var prv = vnode.previousSibling;
+		while(prv && !ignoreWS(prv)){
+			prv = vnode.previousSibling;
+		}
+		return prv || undefined;
 	}
-	return inode;
 }
 
-export function set(inode /*,key,val,type*/){
-	// used to restore immutable parents, never modifies mutable
-	return inode;
+export function push(node,kv,type){
+	type = type || getType(node);
+	if(isBranch(type)){
+		node.appendChild(kv[1]);
+	}
+	return node;
 }
 
-export function removeChild(inode,child,type){
-	if(type == 1 || type == 9 || type == 11){
-		// TODO removeChild et al.
-		inode.removeChild(child);
+export function set(node,key,val,type){
+	type = type || getType(node);
+	if(type == 1) {
+		node.setAttribute(key,val);
+	} else if(type == 6) {
+		const attr = document.createElement("l3-a");
+		attr.setAttribute("name", key);
+		attr.appendChild(val);
+		node.appendChild(attr);
 	}
-	return inode;
+	return node;
+}
+
+export function removeChild(node,vchild,type){
+	if(isBranch(type)){
+		node.removeChild(vchild.node);
+	}
+	return node;
 }
 
 export function cached() {
 }
 
-export function keys(inode,type){
-	if(type == 1 || type == 9 || type == 11) {
-		let children = filterWS(inode.childNodes), len = children.length, keys = [];
+export function keys(node,type){
+	if(type == 1 || type == 9 || type == 11 || type == 14 || type == 15) {
+		let children = filterWS(node.childNodes), len = children.length, keys = [];
 		for(let i = 0; i<len; i++){
 			keys[i] = getQName(children[i],i);
 		}
 		return keys;
 	}
 	// TODO l3
-	//if(type == 5) return range(inode.length).toArray();
-	//if(type == 6) return Object.keys(inode);
+	if(type == 5) return range(filterWS(node.childNodes).length).toArray();
+	if(type == 6) return map(c => c.getAttribute("name"))(filterWS(node.childNodes));
 	return [];
 }
 
-export function values(inode,type){
-	if(type == 1 || type == 9 || type == 11) return filterWS(inode.childNodes);
-	//if (type == 2) return [[inode.$name,inode.$value]];
-	//if(type == 6) return Object.values(inode);
-	//if (type == 8) return [inode.$comment];
-	return inode;
+export function values(node,type){
+	if(type == 1 || type == 9 || type == 11) return filterWS(node.childNodes);
+	//if (type == 2) return [[node.$name,node.$value]];
+	//if(type == 6) return Object.values(node);
+	//if (type == 8) return [node.$comment];
+	return node;
 }
 
-export function finalize(inode){
-	return inode;
+export function finalize(node){
+	return node;
 }
 
-export function setAttribute(inode,key,val){
-	if(inode.nodeType == 1) inode.attributes[key]  = val;
-	return inode;
-}
-
-export function getAttribute(inode,key){
-	if(inode.nodeType == 1) return inode.attributes[key];
-}
-
-export function count(inode, type){
-	if(type == 1 || type == 9 || type == 11){
-		return filterWS(inode.childNodes).length;
+export function count(node, type){
+	type = type || getType(node);
+	if(isBranch(type)){
+		return filterWS(node.childNodes).length;
 	}
 	// TODO l3
 	return 0;
 }
 
-export function first(inode,type){
+export function first(node,type){
+	type = type || getType(node);
 	if(type == 1 || type == 9 || type == 11){
-		return filterWS(inode.childNodes)[0];
+		return filterWS(node.childNodes)[0];
 	}
 }
 
-export function last(inode,type){
-	if(type == 1 || type == 9 || type == 11) return filterWS(inode.childNodes).lastItem;
+export function last(node,type){
+	type = type || getType(node);
+	if(type == 1 || type == 9 || type == 11) return filterWS(node.childNodes).lastItem;
 }
 
-export function attrEntries(inode){
-	if(inode.nodeType == 1) {
+export function entries(node, type){
+	type = type || getType(node);
+	if(type == 1) {
 		var i = [];
 		try {
-			for(var a of inode.attributes){
+			for(var a of node.attributes){
 				i[a.name] = a.value;
 			}
 		} catch(err) {
@@ -213,13 +256,51 @@ export function attrEntries(inode){
 	return [];
 }
 
-export function modify(inode/*, node, ref, type*/){
-	return inode;
+export function modify(node, vnode, ref, type){
+	type = type || getType(node);
+	if (type == 2) {
+		// insert faux data
+		node.$value = vnode.node;
+	} else if (type == 6) {
+		const attr = document.createElement("l3-a");
+		attr.setAttribute("name", vnode.key);
+		attr.appendChild(vnode.node.$value);
+		node.appendChild(attr);
+	} else if(isBranch(type)) {
+		if (vnode.type == 2) {
+			// TODO conversion rules!
+			const attr = vnode.node;
+			attr.value = attr.$value.textContent;
+			node.setAttributeNode(attr);
+		} else if (ref !== undefined) {
+			node.insertBefore(vnode.node,ref.node);
+		} else {
+			node.appendChild(vnode.node);
+		}
+	}
+	return node;
 }
 
-export const getType = inode => {
-	var nodeType = inode.nodeType;
-	var nodeName = inode.nodeName;
+export function stringify(node,type){
+	type = type || getType(node);
+	if(type == 9 || type == 11) {
+		return map(c => stringify(c))(node.childNodes).join("");
+	} else if(isBranch(type)) {
+		return node.outerHTML;
+	} else if(type == 10) {
+		return `<!DOCTYPE ${serialize(node.name,node.publicId,node.systemId)}>`;
+	} else {
+		const text = node.textContent;
+		if(type == 7) return `<?${text}?>`;
+		if(type == 8) return `<!--${text}-->`;
+		if(type == 12) return `<l3-x>${text}</l3-x>`;
+		return text;
+	}
+}
+
+export const getType = node => {
+	var nodeType = node.nodeType;
+	var nodeName = node.nodeName;
 	let isElem = nodeType == 1;
-	return isElem ? getL3Type(nodeName) | 1 : nodeType;
+	return isElem ? getL3Type(nodeName) || 1 : nodeType;
 };
