@@ -8,11 +8,12 @@
   },
   "dependencies": {
     "array-last-item": "0.0.3",
+    "ohamt": "0.0.9",
+    "rrb-vector": "0.0.7",
     "rxjs": "^6.2.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-plugin-module-resolver": "^3.1.1",
     "babel-preset-env": "^1.7.0",
     "source-map-support": "^0.5.6"
   },
