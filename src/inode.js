@@ -360,6 +360,8 @@ export function stringify(node, type, prettifier) {
 	type = type || getType(node);
 	if (type == 1) {
 		str += _elemToString(node);
+	} else if(type == 9 || type == 11) {
+		str = node[reservedChildrenKey].map(c => stringify(c)).join("");
 	} else if (type == 2) {
 		str += "<l3:a name=\"" + node.$key + "\">" + stringify(node.$value) + "</l3:a>";
 	} else if (type == 5) {
