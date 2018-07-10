@@ -28,14 +28,5 @@
   "bugs": {
     "url": "https://github.com/wshager/l3n/issues"
   },
-  "homepage": "https://github.com/wshager/l3n#readme",
-  "babel":{
-  	"presets": [
-  		["env", {
-  			"targets": {
-  				"node": "current"
-  			}
-  		}]
-  	]
-  }
+  "homepage": "https://github.com/wshager/l3n#readme"
 }
