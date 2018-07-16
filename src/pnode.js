@@ -6,7 +6,7 @@ import { VNode } from "./vnode";
 
 //import { prettyXML } from "./pretty";
 
-import { isBranch } from "./convert";
+import { isBranch } from "./type";
 
 import { serialize } from "./doctype";
 

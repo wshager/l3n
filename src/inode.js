@@ -4,7 +4,7 @@ import multimap from "./multimap";
 
 import { serialize } from "./doctype";
 
-import { isBranch } from "./convert";
+import { isBranch, hasName } from "./type";
 
 // import self!
 import * as cx from "./inode";
@@ -26,7 +26,29 @@ const reservedValueKeys = {
 
 const hashre = /^#/;
 
+const dollarRE = /^\$/;
+// -----------------------
+
+/**
+ * Interface for modules that represent a tree structure.
+ *
+ * @interface Node
+ */
+
+/**
+ * Mark the modules as a node construction context
+ * @type {String}
+ */
 export const __vnode_context = "inode";
+
+
+/**
+ * Get the type of a node as a L3 type constant ranging from 1 to 17
+ * @function
+ * @name Node#getType
+ * @param {any}  node a 'node' according to this interface
+ * @return {Number} L3 type constant
+ */
 
 export function getType(node) {
 	if (node === null) return 12;
@@ -50,8 +72,15 @@ export function getType(node) {
 	return 3;
 }
 
-// -----------------------
-
+/**
+ * [vnode description]
+ * @param  {any} node          [description]
+ * @param  {VNode} parent        [description]
+ * @param  {Number} depth         [description]
+ * @param  {Number} indexInParent [description]
+ * @param  {Number} type          [description]
+ * @return {VNode}               [description]
+ */
 export function vnode(node, parent, depth, indexInParent, type) {
 	type = type || getType(node);
 	let name,key,value;
@@ -79,12 +108,13 @@ export function create(type, nameOrValue) {
 	if(type == 6) return {};
 	if(type == 3 || type == 12) return nameOrValue;
 	const node = {};
+	if(hasName(type)) node[reservedNameKey] = nameOrValue;
 	if (type == 1 || type == 9 || type == 11) {
-		node[reservedNameKey] = nameOrValue;
 		node[reservedChildrenKey] = [];
+	} else if(type == 14 || type == 15) {
+		node[reservedArgsKey] = [];
 	} else if(type == 2) {
 		// value will be inserted later
-		node[reservedNameKey] = nameOrValue;
 		node[reservedValueKeys[2]] = void 0;
 	} else {
 		const val = type == 7 ? nameOrValue.join(" ") : type == 10 ? serialize(...nameOrValue) : nameOrValue;
@@ -165,7 +195,7 @@ export function set(node,key,val,type) {
 
 export function removeChild(node, child, type) {
 	type = type || getType(node);
-	if (type == 1 || type == 9) {
+	if (type == 1 || type == 9 || type == 11) {
 		node[reservedChildrenKey].splice(child.indexInParent, 1);
 	} else if (type == 5) {
 		node.splice(child.indexInParent, 1);
@@ -284,7 +314,8 @@ export function last(node, type) {
 export function entries(node, type) {
 	type = type || getType(node);
 	if(type == 5) return node.entries();
-	if (type == 1 || type == 6 || type == 9 || type == 11) return Object.entries(node);
+	if(type == 6) return Object.entries(node);
+	if (type == 1 || type == 6 || type == 9 || type == 11) return Object.entries(node).filter(([k]) => !dollarRE.test(k));
 	return [];
 }
 

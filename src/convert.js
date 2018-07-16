@@ -9,30 +9,7 @@ import * as inode from "./inode";
 
 import { VNode, Close, getContext } from "./vnode";
 
-/**
- * Check if type is of leaf class
- * @param  {Number}  type the type constant to test
- * @return {Boolean}      result
- */
-export const isLeaf = function isLeaf(type) {
-	return type == 2 || type == 3 || type == 4 || type == 7 || type == 8 || type == 10 || type == 12 || type == 16;
-};
-
-/**
- * Check if type is of branch class
- * @param  {Number}  type the type constant to test
- * @return {Boolean}      result
- */
-export const isBranch = function isBranch(type) {
-	return type == 1 || type == 5 || type == 6 || type == 9 || type == 11 || type == 14 || type == 15;
-};
-
-/**
- * Check if type is of close class
- * @param  {Number}  type the type constant to test
- * @return {Boolean}      result
- */
-export const isClose = type => type == 17;
+import { isBranch, isLeaf, isClose, hasName } from "./type";
 
 class VNodeBuffer {
 	constructor(nodes = []) {
@@ -62,6 +39,7 @@ class VNodeBuffer {
  * @return {Observable}          The VNode stream as an Observable
  */
 export function toVNodeStream($s,bufSize = 1) {
+	// TODO fix bufSize = 0
 	const cx = getContext(this,inode);
 	// create fragment node here; doc constructor expects children
 	let d = cx.vnode(cx.create(11,"#document-fragment"), 11);
@@ -135,14 +113,10 @@ export function toVNodeStream($s,bufSize = 1) {
 					node = cx.create(14,stack[1]);
 					break;
 				case 15:
-					node = cx.create(15);
-					break;
 				case 5:
-					node = cx.create(5);
-					break;
 				case 6:
-					// never emit until all pairs are closed
-					node = cx.create(6);
+					// never emit until all pairs are closed (Why?)
+					node = cx.create(type);
 					break;
 				}
 				if (last == 6) {
@@ -229,6 +203,41 @@ export function toVNodeStream($s,bufSize = 1) {
 				// flush all
 				buf.flush($o);
 				$o.complete();
+			}
+		});
+	});
+}
+
+export function fromVNodeStream($node) {
+	// I know I know, not functional...
+	return Observable.create($o => {
+		$node.subscribe({
+			next(vnode) {
+				const type = vnode.type;
+				if(type == 9 || type == 11) return;
+				// NOTE doctype type needs to be serialized as 16, but we handle it in serialization
+				$o.next(type);
+				if(hasName(type)) {
+					$o.next(vnode.name);
+				} else if(isLeaf(type) || type == 2) {
+					$o.next(vnode.value);
+				}
+				// emit all pairs
+				// TODO provide option to traverse attributes...
+				if(type == 1) {
+					for(let [k,v] of vnode.entries()) {
+						$o.next(2);
+						$o.next(k);
+						$o.next(3);
+						$o.next(v);						
+					}
+				}
+			},
+			complete(){
+				$o.complete();
+			},
+			error(err) {
+				$o.error(err);
 			}
 		});
 	});
