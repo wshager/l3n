@@ -10,6 +10,51 @@ import { Close } from "./vnode";
 import { ensureDoc } from "./doc";
 
 /**
+ * Next-sibling based traversal
+ * @private
+ * @param  {Observable} $node [description]
+ * @return {Observable}       [description]
+ */
+const _traverseNextNode = $node => Observable.create($o => {
+	return $node.subscribe({
+		next(node) {
+			while (node) {
+				$o.next(node);
+				node = nextNode(node);
+			}
+
+			$o.complete();
+		},
+		error(err) {
+			$o.error(err);
+		}
+	});
+});
+
+/**
+ * Used for closer-aware contexts (e.g. linked list)
+ * @private
+ * @param  {Observable} $node [description]
+ * @return {Observable}       [description]
+ */
+const _traverseVNodeNext = $node => Observable.create($o => {
+	return $node.subscribe({
+		next(node) {
+			while (node) {
+				$o.next(node);
+				node = node.next(node);
+			}
+
+			$o.complete();
+		},
+		error(err) {
+			$o.error(err);
+		}
+	});
+});
+
+
+/**
  * Traverses a document in depth-first (AKA "document") order
  * In addition to every node in the document, a special `Close` node is emitted after every traversed branch.
  * @param  {any} $node  (faux) VNode, Observable or any node constructed within the bound context
@@ -18,20 +63,7 @@ import { ensureDoc } from "./doc";
 export function traverse($node) {
 	var cx = this;
 	$node = ensureDoc.bind(cx)($node);
-	return Observable.create($o => {
-		return $node.subscribe({
-			next(node) {
-				while (node) {
-					$o.next(node);
-					node = nextNode(node);
-				}
-				$o.complete();
-			},
-			error(err) {
-				$o.error(err);
-			}
-		});
-	});
+	return cx.__vnode_context == "triply" ? _traverseVNodeNext($node) : _traverseNextNode($node);
 }
 
 export default traverse;
