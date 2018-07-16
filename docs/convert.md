@@ -3,49 +3,6 @@
 ## convert
 Stream conversion
 
-
-* [convert](#module_convert)
-    * [.isLeaf](#module_convert.isLeaf) ⇒ <code>Boolean</code>
-    * [.isBranch](#module_convert.isBranch) ⇒ <code>Boolean</code>
-    * [.isClose](#module_convert.isClose) ⇒ <code>Boolean</code>
-    * [.toVNodeStream($s, [bufSize])](#module_convert.toVNodeStream) ⇒ <code>Observable</code>
-
-<a name="module_convert.isLeaf"></a>
-
-### convert.isLeaf ⇒ <code>Boolean</code>
-Check if type is of leaf class
-
-**Kind**: static constant of [<code>convert</code>](#module_convert)  
-**Returns**: <code>Boolean</code> - result  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| type | <code>Number</code> | the type constant to test |
-
-<a name="module_convert.isBranch"></a>
-
-### convert.isBranch ⇒ <code>Boolean</code>
-Check if type is of branch class
-
-**Kind**: static constant of [<code>convert</code>](#module_convert)  
-**Returns**: <code>Boolean</code> - result  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| type | <code>Number</code> | the type constant to test |
-
-<a name="module_convert.isClose"></a>
-
-### convert.isClose ⇒ <code>Boolean</code>
-Check if type is of close class
-
-**Kind**: static constant of [<code>convert</code>](#module_convert)  
-**Returns**: <code>Boolean</code> - result  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| type | <code>Number</code> | the type constant to test |
-
 <a name="module_convert.toVNodeStream"></a>
 
 ### convert.toVNodeStream($s, [bufSize]) ⇒ <code>Observable</code>
