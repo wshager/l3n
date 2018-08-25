@@ -175,7 +175,7 @@ export function push(node, [k,v], type) {
 	if (type == 1 || type == 9 || type == 11) {
 		node[reservedChildrenKey].push(v);
 	} else if (type == 14 || type == 15) {
-		node[reservedChildrenKey].push(v);
+		node[reservedArgsKey].push(v);
 	} else if (type == 5) {
 		node.push(v);
 	} else if (type == 6) {
