@@ -79,10 +79,10 @@ export function toVNodeStream($s,bufSize = 1) {
 				_isBranch = isBranch(type);
 			if (_isBranch) {
 				ndepth++;
+				name = stack[1];
 				switch (type) {
 				case 1:
 				{
-					name = stack[1];
 					node = cx.create(1,name);
 					if (last == 6) {
 						// emit inode /w key
@@ -104,19 +104,19 @@ export function toVNodeStream($s,bufSize = 1) {
 					return;
 				}
 				case 9:
-					node = cx.create(9,"#document");
+					name = "#document";
+					node = cx.create(9,name);
 					break;
 				case 11:
-					node = cx.create(11,"#document-fragment");
+					name = "#document-fragment";
+					node = cx.create(11,name);
 					break;
 				case 14:
-					node = cx.create(14,stack[1]);
-					break;
 				case 15:
 				case 5:
 				case 6:
 					// never emit until all pairs are closed (Why?)
-					node = cx.create(type);
+					node = cx.create(type,name);
 					break;
 				}
 				if (last == 6) {
@@ -229,7 +229,7 @@ export function fromVNodeStream($node) {
 						$o.next(2);
 						$o.next(k);
 						$o.next(3);
-						$o.next(v);						
+						$o.next(v);
 					}
 				}
 			},
