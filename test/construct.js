@@ -20,6 +20,9 @@ const frag =
 
 const s = process.hrtime();
 l3.traverse.bind(l3.inode)(frag).subscribe({
+	next(x) {
+		console.log(x+"");
+	},
 	complete() {
 		console.log(time(process.hrtime(s)));
 	}
