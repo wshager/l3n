@@ -84,9 +84,7 @@ export function getType(node) {
 export function vnode(node, parent, depth, indexInParent, type) {
 	type = type || getType(node);
 	let name,key,value;
-	if (isBranch(type)) {
-		name = node[reservedNameKey];
-	} else if (type == 2) {
+	if (type == 2) {
 		name = node[reservedNameKey];
 		value = node[reservedValueKeys[2]];
 		// this ensures pairs are iterated as their values (if no $key use attr node for construction)
@@ -95,6 +93,9 @@ export function vnode(node, parent, depth, indexInParent, type) {
 			node = value;
 			type = getType(node);
 		}
+	}
+	if (isBranch(type)) {
+		name = node[reservedNameKey];
 	} else if(type == 3 || type == 12) {
 		value = node;
 	} else {
@@ -317,6 +318,13 @@ export function entries(node, type) {
 	if(type == 6) return Object.entries(node);
 	if (type == 1 || type == 6 || type == 9 || type == 11) return Object.entries(node).filter(([k]) => !dollarRE.test(k));
 	return [];
+}
+
+export function attr(node,key,val,type) {
+	if(type == 1 || type == 6) {
+		if(val === undefined) return node[key];
+		return {$key:key,$value:val};
+	}
 }
 
 export function modify(node, vnode, ref, type) {
