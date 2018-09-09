@@ -3,11 +3,12 @@
  * @module traverse
  */
 
-import { Observable } from "rxjs";
-
 import { Close } from "./vnode";
 
 import { ensureDoc } from "./doc";
+
+import { mergeMap } from "rxjs/operators";
+
 
 /**
  * Next-sibling based traversal
@@ -15,21 +16,14 @@ import { ensureDoc } from "./doc";
  * @param  {Observable} $node [description]
  * @return {Observable}       [description]
  */
-const _traverseNextNode = $node => Observable.create($o => {
-	return $node.subscribe({
-		next(node) {
-			while (node) {
-				$o.next(node);
-				node = nextNode(node);
-			}
-
-			$o.complete();
-		},
-		error(err) {
-			$o.error(err);
-		}
-	});
-});
+const _traverseNextNode = $node => $node.pipe(mergeMap(node => {
+	const ret = [];
+	while (node) {
+		ret.push(node);
+		node = nextNode(node);
+	}
+	return ret;
+}));
 
 /**
  * Used for closer-aware contexts (e.g. linked list)
@@ -37,21 +31,14 @@ const _traverseNextNode = $node => Observable.create($o => {
  * @param  {Observable} $node [description]
  * @return {Observable}       [description]
  */
-const _traverseVNodeNext = $node => Observable.create($o => {
-	return $node.subscribe({
-		next(node) {
-			while (node) {
-				$o.next(node);
-				node = node.next(node);
-			}
-
-			$o.complete();
-		},
-		error(err) {
-			$o.error(err);
-		}
-	});
-});
+const _traverseVNodeNext = $node => $node.pipe(mergeMap(node => {
+	const ret = [];
+	while (node) {
+		ret.push(node);
+		node = node.next(node);
+	}
+	return ret;
+}));
 
 
 /**
