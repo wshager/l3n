@@ -75,8 +75,11 @@ export class VNode {
 	 * @return {any} The node's first child, if any
 	 */
 	first() {
-		if (!this.cache) this.cache = this.cx.cached(this.node, this.type);
+		//if (!this.cache) this.cache = this.cx.cached(this.node, this.type);
 		return this.cx.first(this.node, this.type, this.cache);
+	}
+	attr(key,val) {
+		return this.cx.attr(this.node,key,val,this.type);
 	}
 	/**
 	 * Interface to context's last function
