@@ -9,6 +9,7 @@
  */
 
 import { _n, _a, _v } from "./construct-impl-strict";
+import { isString } from "./util";
 
 /**
  * Creates an element node, which can contain multiple nodes of any type, except `document`.
@@ -38,7 +39,7 @@ export function a(name, value) {
   * @return {VNode}                A faux VNode
  */
 export function x(value) {
-	return _v(3, value);
+	return _v(isString(value) ? 3 : 12, value);
 }
 
 /**
