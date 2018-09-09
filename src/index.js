@@ -20,7 +20,7 @@ export { e, a, x, l, m, p, c, f, q } from "./construct";
 
 export { VNode, isVNode, getContext } from "./vnode";
 
-export { toVNodeStream, fromVNodeStream } from "./convert";
+export { toVNodeStreamCurried, toVNodeStream, fromVNodeStream } from "./convert";
 
 export { isBranch, isLeaf, isClose } from "./type";
 
