@@ -7,7 +7,7 @@
     "test": "test"
   },
   "dependencies": {
-    "array-last-item": "0.0.3",
+    "array-last-item": "0.0.7",
     "ohamt": "0.0.9",
     "rrb-vector": "0.0.7",
     "rxjs": "^6.2.1",
@@ -26,7 +26,7 @@
     "type": "git",
     "url": "git+https://github.com/wshager/l3n.git"
   },
-  "author": "W.S. Hager",
+  "author": "Wouter Hager",
   "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/wshager/l3n/issues"
