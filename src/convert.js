@@ -38,7 +38,8 @@ class VNodeBuffer {
  * @param  {Number} [bufSize=1]  Optional buffer size. Use NaN or Infinity to buffer everything
  * @return {Observable}          The VNode stream as an Observable
  */
-export function toVNodeStream($s,bufSize = 1) {
+export const toVNodeStream = ($s,props = {}) => toVNodeStreamCurried(props)($s);
+export const toVNodeStreamCurried = ({bufSize = 1, withAttrs = false}) => $s => {
 	// TODO fix bufSize = 0
 	const cx = getContext(this,inode);
 	// create fragment node here; doc constructor expects children
@@ -59,7 +60,7 @@ export function toVNodeStream($s,bufSize = 1) {
 			parent = parents[ol];
 		// buffered is used to add attributes to elements before they're emitted
 		// here buffered is released before anything else is processed (except attrs)
-		if (last == 1 && buffered !== null && type != 2) {
+		if (last == 1 && buffered !== null && (withAttrs || type != 2)) {
 			// console.log("buf",buffered.name);
 			buf.add(buffered);
 			buffered = null;
@@ -83,13 +84,13 @@ export function toVNodeStream($s,bufSize = 1) {
 				switch (type) {
 				case 1:
 				{
-					node = cx.create(1,name);
 					if (last == 6) {
-						// emit inode /w key
-						key = openPairs[ndepth];
+						// must be an open pair
+						key = openPairs[ndepth - 1];
+						openPairs[ndepth - 1] = undefined;
 						//console.log("picked up pair",ndepth,key);
-						openPairs[ndepth] = undefined;
 					}
+					node = cx.create(1,name);
 					if (parent) parent.push([key, node]);
 					open.push(type);
 					// TODO use cx.vnode()
@@ -147,7 +148,7 @@ export function toVNodeStream($s,bufSize = 1) {
 						//console.log("picked up pair",ndepth,key);
 						// NOTE unset pair! No seqs allowed in l3!
 						openPairs[ndepth] = undefined;
-						if (last == 6) {
+						if (last == 6 || (last == 1 && withAttrs)) {
 							if (parent) {
 								if(parent.has(key)) {
 									parent.set(key,parent.get(key) + " "+ node);
@@ -206,7 +207,7 @@ export function toVNodeStream($s,bufSize = 1) {
 			}
 		});
 	});
-}
+};
 
 export function fromVNodeStream($node) {
 	// I know I know, not functional...
@@ -215,12 +216,17 @@ export function fromVNodeStream($node) {
 			next(vnode) {
 				const type = vnode.type;
 				if(type == 9 || type == 11) return;
+				if(vnode.key !== undefined) {
+					$o.next(2);
+					$o.next(vnode.key);
+				}
 				// NOTE doctype type needs to be serialized as 16, but we handle it in serialization
 				$o.next(type);
+				//console.log(type,vnode.name);
 				if(hasName(type)) {
 					$o.next(vnode.name);
-				} else if(isLeaf(type) || type == 2) {
-					$o.next(vnode.value);
+				} else if(isLeaf(type)) {
+					$o.next(vnode.value+"");
 				}
 				// emit all pairs
 				// TODO provide option to traverse attributes...
