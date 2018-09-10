@@ -10,8 +10,7 @@
     "array-last-item": "0.0.7",
     "ohamt": "0.0.9",
     "rrb-vector": "0.0.7",
-    "rxjs": "^6.2.1",
-    "triply": "0.0.8"
+    "rxjs": "^6.2.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.53",
