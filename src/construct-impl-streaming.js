@@ -48,15 +48,16 @@ export function _a(name, child) {
 		return child.pipe(
 			concatMap(child => node.modify(isVNode(child) ? typeof child.node == "function" ? child.node(node) : child : _attrValue(child,parent.type).node(node)))
 		);
-	}, 2, name);
+	}, 2, name, null, true);
 }
 
 export function _v(type, val) {
 	return vnode(
 		// set by type, not by key (for attrs the keys are already filled in by pair)
-		parent => val.pipe(map(val => parent.vnode(parent.create(type,val), parent))),
+		parent => just(val).pipe(map(val => parent.vnode(parent.create(type,val), parent))),
 		type,
 		null,
-		val
+		val,
+		true
 	);
 }
