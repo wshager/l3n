@@ -18,7 +18,7 @@ export function _n(type, name, children) {
 		if(Array.isArray(first)) children = first;
 	}
 	for(let c of children) {
-		if(isVNode(c) && c.streaming) return _n2(type,name,from(children));
+		if(isObservable(c) || (isVNode(c) && c.streaming)) return _n2(type,name,from(children));
 	}
 	return vnode(function (parent, ref) {
 		/*var ns;
