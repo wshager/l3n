@@ -1,6 +1,6 @@
 import { isVNode } from "./vnode";
 
-import { isObservable, of } from "rxjs";
+import { isObservable, of, from } from "rxjs";
 
 import { _n as _n2, _a as _a2, _v as _v2 } from "./construct-impl-streaming";
 
@@ -16,6 +16,9 @@ export function _n(type, name, children) {
 		if(isObservable(first)) return _n2(type,name,first);
 		if(isVNode(first) && first.streaming) return _n2(type,name,of(first));
 		if(Array.isArray(first)) children = first;
+	}
+	for(let c of children) {
+		if(isVNode(c) && c.streaming) return _n2(type,name,from(children));
 	}
 	return vnode(function (parent, ref) {
 		/*var ns;
@@ -40,7 +43,7 @@ const _attrValue = (value,parentType) => {
 };
 
 export function _a(name, child) {
-	if(isObservable(child)) return _a2(name,child);
+	if(isObservable(child) || (isVNode(child) && child.streaming)) return _a2(name,child);
 	return vnode(parent => {
 		// provide a provisional entry in the parent (without a value)
 		var node = parent.vnode(parent.create(2,name), parent);
